@@ -1,0 +1,32 @@
+{
+  "name": "app-ia",
+  "version": "1.0.0",
+  "description": "Uma aplicação de IA para criação de arte.",
+  "author": "Seu Nome <seu.email@example.com>",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^34.0.1",
+    "electron-builder": "^24.6.4"
+  },
+  "build": {
+    "appId": "com.example.artforge",
+    "files": ["**/*"],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "frontend/ms-icon-310x310.png"
+    },
+    "mac": {
+      "icon": "frontend/icon.icns"
+    },
+    "linux": {
+      "icon": "frontend/icon.png"
+    }
+  }
+}

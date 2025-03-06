@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtForge</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome para ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- CSS externo -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Logo e Nome no Topo (exibido após a intro) -->
+  <div class="logo-top">
+    <img src="logo-menu.png" alt="ArtForge Logo">
+  </div>
+  
+  <!-- Tela de Introdução -->
+  <div id="intro-screen" class="intro-screen">
+    <section id="logo-intro">
+      <img src="logo-intro.jpg" alt="ArtForge Logo" class="logo-intro" >
+    </section>
+  </div>
+  
+  
+  <!-- Conteúdo Principal -->
+  <div id="main-content" style="display: none;">
+    <div class="title">
+      <h2>Crie Sua Imagem com Facilidade e Estilo</h2>
+      <p>Transforme suas ideias em imagens incríveis de maneira simples e rápida.</p>
+    </div>
+    
+    <!-- Seção Text to Image -->
+    <div id="text-to-image-section" class="section" style="display: block;">
+      
+      <div class="custom-prompt-container">
+        <select id="quality-select" class="custom-dropdown">
+          <option value="high">Alta</option>
+          <option value="medium">Média</option>
+          <option value="low">Baixa</option>
+        </select>
+        <input type="text" id="description-input" class="custom-input" placeholder="Descreva sua imagem...">
+        <button id="generate-button" class="custom-button">
+          <i class="fas fa-magic"></i> Gerar
+        </button>
+      </div>
+      
+      <!-- Imagem Gerada -->
+      <img id="generated-image" alt="Imagem Gerada" style="display: none;">
+    </div>
+
+    <!-- Seção Image to Image -->
+    <div id="image-to-image-section" class="section">
+      <h2>Image to Image</h2>
+      <div class="file-input-container">
+        <label for="image-input" class="custom-file-button">Escolha uma Imagem</label>
+        <input type="file" id="image-input" accept="image/*">
+      </div>
+      <div id="file-name" class="file-name">No file selected</div>
+      <input type="text" id="image-to-image-prompt" class="prompt" placeholder="Digite seu prompt...">
+      <button id="generate-modified-image-btn" class="submit">Gerar Imagem Modificada</button>
+      <img id="modified-image" alt="Imagem Modificada" style="display: none;">
+    </div>
+
+    <!-- Menu de opções -->
+    <div class="menu-container">
+      <button id="btn-text-to-image" class="menu-btn">Text to Image</button>
+      <button id="btn-image-to-image" class="menu-btn">Image to Image</button>
+    </div>
+
+  </div>
+  
+  <!-- JavaScript externo -->
+  <script src="script.js"></script>
+</body>
+</html>
