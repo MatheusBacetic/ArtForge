@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const logoIntro = document.getElementById("logo-intro");
       const introScreen = document.getElementById("intro-screen");
       const mainContent = document.getElementById("main-content");
-      const logoTop = document.querySelector(".logo-top");
+      const header = document.querySelector(".header");
 
       // Aplica a animação de fade-out na intro
       logoIntro.classList.add("fall-out");
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
         introScreen.style.display = "none";
         
         // Exibe o conteúdo principal
-        if (logoTop) logoTop.style.display = "block";
+        header.classList.add("visible"); // Anima o header
         if (mainContent) {
           mainContent.style.display = "flex";
           mainContent.classList.add("fade-in");
@@ -146,4 +146,27 @@ document.addEventListener("DOMContentLoaded", () => {
   } catch (error) {
     console.error("Erro ao inicializar o script:", error);
   }
+
+    // Seleciona o hamburger e o menu
+    const hamburger = document.getElementById("hamburger");
+    const menuContainer = document.getElementById("menu-container");
+  
+    // Função para alternar o menu
+    function toggleMenu() {
+      menuContainer.classList.toggle("active");
+      // Animação do hamburger (transforma em "X")
+      hamburger.classList.toggle("active");
+    }
+  
+    // Adiciona evento de clique ao hamburger
+    hamburger.addEventListener("click", toggleMenu);
+  
+    // Fecha o menu quando um botão é clicado
+    const menuButtons = document.querySelectorAll(".menu-btn");
+    menuButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        menuContainer.classList.remove("active");
+        hamburger.classList.remove("active");
+      });
+    });
 });

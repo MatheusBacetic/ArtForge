@@ -1,3 +1,94 @@
+/* Header */
+.header {
+  position: fixed; /* Fixa o header no topo */
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #0e131b;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  z-index: 1000;
+  opacity: 0; /* Inicia invisível */
+  transform: translateY(-20px); /* Posição inicial acima da tela */
+  transition: all 1s ease; /* Animação suave */
+}
+
+/* Classe para animar o header quando o conteúdo principal é exibido */
+.header.visible {
+  opacity: 1;
+  transform: translateY(0); /* Move para a posição final */
+}
+
+/* Hamburger (FontAwesome) */
+.hamburger {
+  display: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #6200ea;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+  
+  .menu-container {
+    position: absolute;
+    top: 60px;
+    right: -200px;
+    flex-direction: column;
+    background-color: #fff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+  }
+
+  .menu-container.active {
+    right: 0;
+  }
+
+  .hamburger.active {
+    transform: rotate(90deg);
+  }
+}
+
+.hamburger.active {
+  transform: rotate(180deg);
+  color: #3700b3; /* Cor alterada ao clicar */
+}
+
+/* Logo no Header */
+.logo-header img {
+  width: 150px; /* Ajuste conforme o tamanho da sua logo */
+  height: auto;
+  position: fixed; /* Fixa a logo no topo */
+  top: 5px;
+  left: 15px;
+  margin-bottom: 20px;
+  transform: none;
+  z-index: 998;
+  display: none; /* Inicialmente oculto; será exibido após a intro */
+  width: 100px;
+  height: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 20px;
+  }
+  .menu-container {
+    margin-top: 10px;
+  }
+}
+
 /* Estilos Globais */
 body {
   font-family: 'Poppins', Arial, sans-serif;
@@ -77,16 +168,7 @@ body {
 }
 
 .logo-top {
-  position: fixed; /* Fixa a logo no topo */
-  top: 5px;
-  left: 15px;
-  margin-bottom: 20px;
-  transform: none;
-  z-index: 998;
-  display: none; /* Inicialmente oculto; será exibido após a intro */
-  width: 100px;
-  height: auto;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra suave */
+ 
 }
 
 /* Estilo Base para #main-content */
@@ -461,10 +543,6 @@ p{
   box-shadow: 0 4px 8px rgba(98, 0, 234, 0.2);
 }
 
-/* Efeito ao selecionar */
-.custom-dropdown:focus {
-  box-shadow: 0 4px 8px rgba(98, 0, 234, 0.2);
-}
 
 /* Estilo das opções do dropdown */
 .custom-dropdown option {
@@ -518,18 +596,18 @@ p{
 .custom-button {
   font-size: 16px;
   padding: 10px 15px;
-  background-color: transparent;
+  background-color: rgba(98, 0, 234, 0.2);
   color: #fff;
   border: none;
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 8px 12px rgba(98, 0, 234, 0.2);
   flex: 0 0 auto; /* Mantém o tamanho fixo */
 }
 
 .custom-button:hover {
   background-color: #3700b3;
+  box-shadow: 0 8px 12px rgba(98, 0, 234, 0.2);
 }
 @media (max-width: 768px) {
   .custom-input {
