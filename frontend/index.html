@@ -6,57 +6,52 @@
   <title>ArtForge</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- Se estiver usando Socket.IO, mantenha a linha abaixo; se não, pode ser removida -->
-  <script src="script.js" defer></script>
   <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
   <!-- Tela de Introdução -->
   <div id="intro-screen" class="intro-screen">
-    <section id="logo-intro">
-      <img src="logo-intro.jpg" alt="ArtForge Logo" class="logo-intro">
-    </section>
+    <img src="logo-intro.jpg" alt="ArtForge Logo" id="logo-intro" class="logo-intro">
   </div>
-  
+
   <!-- Cabeçalho -->
   <header class="header" id="header">
     <div class="logo-header">
       <img src="logo-menu.jpg" alt="ArtForge Logo">
     </div>
+    <h1 class="titleArt">
+      <a href="index.html" class="title-link">ArtForge</a>
+    </h1>
     <div class="history-icon" id="history-icon">
-      <i class="fas fa-history"></i> 
+      <i class="fas fa-history"></i>
     </div>
     <h2>Imagens criadas</h2>
-    <h1 class="titleArt">ArtForge</h1>
   </header>
-  
+
   <!-- Menu Lateral (Histórico) -->
-  <div class="history-menu" id="history-menu">
+  <div class="history-menu" id="history-menu" role="dialog" aria-labelledby="history-title">
     <div class="menu-header">
-      <h3>Histórico</h3>
-      <div class="close-menu">×</div>
+      <h3 id="history-title">Histórico de Imagens</h3>
+      <button class="close-menu" aria-label="Fechar histórico">×</button>
     </div>
-    <ul>
-      <li>Imagem 1</li>
-      <li>Imagem 2</li>
-      <li>Imagem 3</li>
-    </ul>
+    <ul id="history-list" role="list" aria-label="Imagens geradas"></ul>
   </div>
 
   <!-- Conteúdo Principal -->
-  <div id="main-content" style="display: none;">
+  <div id="main-content">
     <!-- Menu Inicial -->
     <div class="initial-menu" id="initial-menu">
-      <img src="futurista.jpg" alt="logo-menu">
-      <h1>Bem vindo ao seu gerador de imagens </h1>
+      <img src="futurista.jpg" alt="logo-menu" class="futurista">
+      <h1>Bem vindo ao seu gerador de imagens</h1>
       <p>
         O lugar onde sua criatividade não tem limites<br>
         Crie, transforme e explore mundos<br>
       </p>
     </div>
 
-    <!-- Seção Texto -> Imagem -->
     <div id="text-to-image-section" class="text-to-image-section" style="display: none;">
+      <img src="campoAberto.jpg" alt="logo">
       <h2>Descreva sua imagem e veja ela ganhar vida</h2>
       <div class="custom-prompt-container">
         <select id="quality-select" class="custom-dropdown">
@@ -78,47 +73,10 @@
       <img id="generated-image" style="display: none;" alt="Imagem Gerada">
     </div>
 
-    <!-- Seção Imagem -> Imagem -->
-    <div id="image-to-image-section" class="section" style="display: none;">
-      <h2>Modifique uma imagem já existente do seu jeito</h2>
-      <div class="custom-prompt-container">
-        <label for="image-input" class="custom-button custom-file-button">
-          <i class="fas fa-image"></i> 
-        </label>
-        <input 
-          type="file" 
-          id="image-input" 
-          accept="image/*" 
-          style="display: none;"
-        >
-        <span id="file-name" class="file-name">Nenhum arquivo selecionado</span>
-        <input 
-          type="text" 
-          id="image-to-image-prompt" 
-          class="custom-input" 
-          placeholder="Digite seu prompt..."
-        >
-        <button 
-          id="generate-modified-image-btn" 
-          class="custom-button"
-        >
-          <i class="fas fa-magic"></i> Gerar
-        </button>
-      </div>
-      <img 
-        id="modified-image" 
-        alt="Imagem Modificada" 
-        style="display: none;"
-      >
-    </div>
-
     <!-- Botões do Menu -->
     <div class="menu-container">
       <button id="btn-text-to-image" class="menu-btn">
-        <i class="fas fa-pencil-alt"></i> Texto -> Imagem
-      </button>
-      <button id="btn-image-to-image" class="menu-btn">
-        <i class="fas fa-image"></i> Imagem -> Imagem
+        <i class="fas fa-pencil-alt"></i> Iniciar
       </button>
     </div>
   </div>

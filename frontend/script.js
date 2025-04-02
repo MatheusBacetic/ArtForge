@@ -1,5 +1,7 @@
+// Variável GLOBAL
+let isGenerating = false;
+
 document.addEventListener("DOMContentLoaded", () => {
-  // ANIMAÇÃO DE INTRODUÇÃO
   const introScreen = document.getElementById("intro-screen");
   const logoIntro = document.getElementById("logo-intro");
   const mainContent = document.getElementById("main-content");
@@ -7,160 +9,174 @@ document.addEventListener("DOMContentLoaded", () => {
 
   logoIntro.classList.add("pulse-in");
 
-  function showIntroAndMainContent() {
-    logoIntro.classList.add("fall-out");
+  logoIntro.addEventListener('animationend', () => {
+    introScreen.classList.add('fade-out');
+    header.classList.add('visible');
+  });
 
-    setTimeout(() => {
-      introScreen.style.display = "none";
-      header.classList.add("visible");
-      mainContent.style.display = "flex";
-      mainContent.classList.add("fade-in");
-      initApp(); // Inicializa funcionalidades após animação
-    }, 1000);
+  introScreen.addEventListener('transitionend', () => {
+    introScreen.style.display = 'none';
+    mainContent.style.display = 'flex';
+    mainContent.classList.remove('hidden'); // Adicione esta linha
+    initApp(); // Inicializa após animação
+  }, { once: true });
+});
+
+function initApp() {
+  setupInitialMenu();
+  setupGenerateButton();
+  loadHistory();
+}
+
+function setupInitialMenu() {
+  const btnTextToImage = document.getElementById("btn-text-to-image");
+  const textToImageSection = document.getElementById("text-to-image-section");
+  const initialMenu = document.getElementById("initial-menu");
+
+  if (btnTextToImage) {
+    btnTextToImage.addEventListener("click", () => {
+      console.log("Botão 'Iniciar' foi clicado.");
+      btnTextToImage.remove();
+      initialMenu.style.display = "none";
+      textToImageSection.style.display = "flex";
+      textToImageSection.style.justifyContent = "center";
+    });
   }
+}
 
-  setTimeout(showIntroAndMainContent, 4000);
+function setupGenerateButton() {
+  const generateImageBtn = document.getElementById("generate-button");
+  const progressWrapper = document.querySelector(".progress-wrapper");
+  const progressBar = document.getElementById("progress-bar");
 
-  // MENU LATERAL (HISTÓRICO)
-  const historyIcon = document.getElementById("history-icon");
-  const historyMenu = document.getElementById("history-menu");
-  const closeMenu = document.querySelector(".close-menu");
+  if (generateImageBtn) {
+    generateImageBtn.addEventListener("click", async () => {
+      if (isGenerating) return;
+      isGenerating = true;
 
-  if (historyIcon && historyMenu && closeMenu) {
-    historyIcon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      historyMenu.style.display = "block";
-      setTimeout(() => historyMenu.classList.add("active"), 10);
-    });
+      progressWrapper.style.display = "block";
+      progressBar.style.width = "0%";
 
-    closeMenu.addEventListener("click", () => {
-      historyMenu.classList.remove("active");
-      setTimeout(() => (historyMenu.style.display = "none"), 300);
-    });
+      const prompt = document.getElementById("description-input")?.value.trim();
+      const quality = document.getElementById("quality-select")?.value;
 
-    window.addEventListener("click", (e) => {
-      if (!historyMenu.contains(e.target) && !historyIcon.contains(e.target)) {
-        historyMenu.classList.remove("active");
-        setTimeout(() => (historyMenu.style.display = "none"), 300);
+      if (!prompt || !quality) {
+        alert("Preencha todos os campos!");
+        progressWrapper.style.display = "none";
+        isGenerating = false;
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/start_generation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, quality }),
+        });
+
+        if (!response.ok) throw new Error("Erro ao iniciar geração");
+        const { task_id } = await response.json();
+
+        const eventSource = new EventSource(`http://127.0.0.1:5000/progress/${task_id}`);
+
+        eventSource.onmessage = (event) => {
+          progressBar.style.width = `${event.data}%`;
+        };
+
+        eventSource.addEventListener("image_ready", (event) => {
+          const data = JSON.parse(event.data);
+          displayImageFullscreen(`http://127.0.0.1:5000/saves/${data.path}`, data.prompt);
+          loadHistory();
+          progressWrapper.style.display = "none";
+          eventSource.close();
+          isGenerating = false;
+        });
+
+        eventSource.addEventListener("error", () => {
+          alert("Erro na geração!");
+          progressWrapper.style.display = "none";
+          eventSource.close();
+          isGenerating = false;
+        });
+      } catch (error) {
+        console.error("Erro:", error);
+        alert(`Falha: ${error.message}`);
+        isGenerating = false;
       }
     });
   }
+}
 
-  let isGenerating = false;
+function loadHistory() {
+  fetch('http://127.0.0.1:5000/api/history')
+    .then(response => response.json())
+    .then(images => {
+      const historyList = document.getElementById('history-list');
+      if (!historyList) return;
+      historyList.innerHTML = "";
 
-  // FUNCIONALIDADES PRINCIPAIS
-  function initApp() {
-    const btnTextToImage = document.getElementById("btn-text-to-image");
-    const btnImageToImage = document.getElementById("btn-image-to-image");
-    const textToImageSection = document.getElementById("text-to-image-section");
-    const imageToImageSection = document.getElementById("image-to-image-section");
-    const initialMenu = document.getElementById("initial-menu");
+      images.forEach(image => {
+        const li = document.createElement('li');
+        const img = document.createElement('img');
+        img.src = `http://127.0.0.1:5000/saves/${image.filename}`;
+        img.classList.add('history-image');
+        img.alt = image.prompt;
 
-    // Navegação entre as seções
-    if (btnTextToImage && btnImageToImage) {
-      btnTextToImage.addEventListener("click", () => {
-        textToImageSection.style.display = "block";
-        imageToImageSection.style.display = "none";
-        initialMenu.style.display = "none";
+        img.addEventListener('click', () =>
+          displayImageFullscreen(img.src, image.prompt)
+        );
+
+        img.addEventListener('error', () => {
+          console.error('Erro ao carregar imagem:', img.src);
+          alert('Imagem não pôde ser carregada');
+        });
+
+        li.appendChild(img);
+        historyList.appendChild(li);
       });
+    })
+    .catch(error => {
+      console.error("Erro ao carregar histórico:", error);
+    });
+}
 
-      btnImageToImage.addEventListener("click", () => {
-        textToImageSection.style.display = "none";
-        imageToImageSection.style.display = "block";
-        initialMenu.style.display = "none";
-      });
-    }
+function displayImageFullscreen(imageUrl, prompt) {
+  const container = document.createElement('div');
+  container.className = 'fullscreen-image';
 
-    const historyMenu = document.getElementById("history-menu");
-    const historyList = historyMenu.querySelector("ul"); // Certifique-se de que o <ul> existe no HTML
-  
-    const generateImageBtn = document.getElementById("generate-button");
-    const progressWrapper = document.querySelector(".progress-wrapper");
-    const progressBar = document.getElementById("progress-bar");
-  
-    if (generateImageBtn) {
-      generateImageBtn.addEventListener("click", async () => {
-        if (isGenerating) return; // Evita múltiplas requisições
-        isGenerating = true;
-  
-        // Mostra a barra de progresso
-        progressWrapper.style.display = "block";
-        progressBar.style.width = "0%";
-  
-        // Obtém os valores de prompt e qualidade
-        const prompt = document.getElementById("description-input")?.value.trim();
-        const quality = document.getElementById("quality-select")?.value;
-  
-        // Valida os valores
-        if (!prompt) {
-          alert("Por favor, forneça um prompt.");
-          progressWrapper.style.display = "none";
-          isGenerating = false;
-          return;
-        }
-  
-        if (!quality) {
-          alert("Por favor, selecione uma qualidade.");
-          progressWrapper.style.display = "none";
-          isGenerating = false;
-          return;
-        }
-  
-        try {
-          // Envia a requisição para iniciar a geração
-          const response = await fetch("http://127.0.0.1:5000/start_generation", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt, quality }),
-          });
-  
-          if (!response.ok) throw new Error("Erro ao iniciar geração");
-  
-          const { task_id } = await response.json();
-  
-          // Cria um EventSource para receber atualizações de progresso e o resultado final
-          const eventSource = new EventSource(`http://127.0.0.1:5000/progress/${task_id}`);
-  
-          eventSource.onmessage = (event) => {
-            // Atualiza o progresso
-            progressBar.style.width = `${event.data}%`;
-            console.log(`Progresso: ${event.data}%`);
-          };
-  
-          eventSource.addEventListener("image_ready", (event) => {
-            // Adiciona a imagem gerada ao histórico
-            const imgUrl = `http://127.0.0.1:5000/saves/${event.data.split('/').pop()}`; // Corrige o caminho da imagem
-            const listItem = document.createElement("li");
-            const imgElement = document.createElement("img");
-            imgElement.src = imgUrl;
-            imgElement.alt = "Imagem Gerada";
-            imgElement.classList.add("history-image");
-            listItem.appendChild(imgElement);
-            historyList.appendChild(listItem);
-  
-            // Oculta a barra de progresso
-            progressWrapper.style.display = "none";
-            eventSource.close();
-            isGenerating = false; // Libera para nova geração
-          });
-  
-          eventSource.addEventListener("error", (event) => {
-            // Lida com erros
-            alert(`Erro: ${event.data}`);
-            progressWrapper.style.display = "none";
-            eventSource.close();
-            isGenerating = false; // Libera para nova geração
-          });
-        } catch (error) {
-          console.error("Erro:", error);
-          alert(`Falha: ${error.message}`);
-          progressWrapper.style.display = "none";
-          isGenerating = false; // Libera para nova geração
-        }
-      });
-    }
+  container.innerHTML = `
+    <button class="close-button">×</button>
+    <img class="fullscreen-img" src="${imageUrl}" alt="${prompt}">
+    <a class="save-button" href="${imageUrl}" download="${prompt}.png">Salvar</a>
+  `;
+
+  document.body.appendChild(container);
+  container.querySelector('.close-button').addEventListener('click', () =>
+    container.remove()
+  );
+}
+
+// Menu lateral
+document.getElementById('history-icon')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const historyMenu = document.getElementById('history-menu');
+  historyMenu.style.display = 'block';
+  setTimeout(() => historyMenu.classList.add('active'), 10);
+  loadHistory();
+});
+
+document.querySelector('.close-menu')?.addEventListener('click', () => {
+  const historyMenu = document.getElementById('history-menu');
+  historyMenu.classList.remove('active');
+  setTimeout(() => historyMenu.style.display = 'none', 300);
+});
+
+window.addEventListener('click', (e) => {
+  const historyMenu = document.getElementById('history-menu');
+  const historyIcon = document.getElementById('history-icon');
+
+  if (!historyMenu?.contains(e.target) && !historyIcon?.contains(e.target)) {
+    historyMenu.classList.remove('active');
+    setTimeout(() => historyMenu.style.display = 'none', 300);
   }
-
-  // Inicializa as funcionalidades principais
-  initApp();
 });

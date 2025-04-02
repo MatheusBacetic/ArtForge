@@ -1,25 +1,35 @@
 from flask import Flask, request, jsonify, send_from_directory, Response
-from diffusers import StableDiffusionPipeline
+from diffusers import DiffusionPipeline
 import torch
 import os
+import json
 import tempfile
+import re
 import time
 from threading import Thread
 from PIL import Image
 
+from flask_cors import CORS
+
 app = Flask(__name__, static_folder="frontend")
+CORS(app)
 app.config['SECRET_KEY'] = 'secret!'
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-pipe = StableDiffusionPipeline.from_pretrained(
-    "runwayml/stable-diffusion-v1-5",
-    torch_dtype=torch.float32
+pipe = DiffusionPipeline.from_pretrained(
+    "johnslegers/epic-diffusion", 
+    torch_dtype=torch.float16
 ).to(device)
 
 pipe.enable_attention_slicing()  # Reduz o uso de memória
 
 tasks = {}
+
+@app.after_request
+def set_csp(response):
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    return response
 
 class ProgressCallback:
     def __init__(self, task_id):
@@ -73,10 +83,17 @@ def generate_image(prompt, task_id):
         # Define o caminho do arquivo
         save_path = os.path.join(save_dir, f"{task_id}.png")
 
-        # Salva a imagem no diretório especificado
+         # Gera um nome de arquivo único baseado no prompt + timestamp
+        sanitized_prompt = re.sub(r'[^a-zA-Z0-9]', '_', prompt)[:50]
+        timestamp = int(time.time())
+        filename = f"{sanitized_prompt}_{timestamp}.png"
+        save_path = os.path.join(save_dir, filename)
         image.save(save_path)
-        tasks[task_id]['image_path'] = save_path
-        print(f"Imagem gerada salva em: {save_path}")
+
+        # Armazena o prompt e o caminho da imagem
+        tasks[task_id]['image_path'] = filename
+        tasks[task_id]['prompt'] = prompt  # Salva o prompt original
+        print(f"Imagem gerada: {save_path}")
     except Exception as e:
         tasks[task_id]['error'] = str(e)
         print(f"Erro ao gerar imagem: {e}")
@@ -131,19 +148,59 @@ def progress(task_id):
                 yield f"event: error\ndata: {task['error']}\n\n"
                 break
             if task['image_path']:
-                yield f"event: image_ready\ndata: {task['image_path']}\n\n"
+                yield f"event: image_ready\ndata: {json.dumps({'path': task['image_path'], 'prompt': task['prompt']})}\n\n"
                 break
             yield f"data: {task['progress']}\n\n"
             time.sleep(1)
 
     return Response(generate_and_stream(), content_type="text/event-stream")
 
-@app.route("/saves/<path:filename>")
+@app.route('/saves/<path:filename>')
 def serve_saved_image(filename):
-    """Serve imagens salvas no diretório saves."""
-    save_dir = os.path.join(os.getcwd(), "saves")  # Caminho absoluto para a pasta 'saves'
+    save_dir = os.path.join(os.getcwd(), "saves")
+    file_path = os.path.join(save_dir, filename)
+    
+    if not os.path.exists(file_path):
+        return "Imagem não encontrada", 404
+    
     return send_from_directory(save_dir, filename)
 
+
+# Adicione uma nova rota para listar imagens salvas
+@app.route('/api/history', methods=['GET'])
+def get_history():
+    save_dir = os.path.join(os.getcwd(), "saves")
+    if not os.path.exists(save_dir):
+        return jsonify([])
+    
+    # Lista imagens diretamente do diretório (independente do estado do `tasks`)
+    images = []
+    for filename in os.listdir(save_dir):
+        if filename.endswith('.png'):
+            # Extrai o prompt do nome do arquivo (seguindo o formato "prompt_timestamp.png")
+            prompt_part = filename.rsplit('_', 1)[0].replace('_', ' ')
+            images.append({
+                'filename': filename,
+                'prompt': prompt_part
+            })
+    
+    # Ordena por data de modificação
+    images.sort(key=lambda x: os.path.getmtime(os.path.join(save_dir, x['filename'])), reverse=True)
+    return jsonify(images)
+
+# Adicione esta rota junto às outras rotas do Flask
+@app.route('/api/delete/<filename>', methods=['DELETE'])
+def delete_image(filename):
+    try:
+        save_dir = os.path.join(os.getcwd(), "saves")
+        file_path = os.path.join(save_dir, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            return jsonify({"status": "success"})
+        else:
+            return jsonify({"status": "error", "message": "Arquivo não encontrado"}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 if __name__ == "__main__":
