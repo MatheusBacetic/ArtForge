@@ -1,2 +1,11 @@
+# Ignora pastas temporárias
 node_modules/
+build/
+dist/
 
+# Ignora arquivos de configuração sensíveis
+.env
+license.key
+
+backend/model_cache/
+*.safetensors

@@ -16,6 +16,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    minWidth: 800, // LARGURA MÍNIMA
+    minHeight: 600, // ALTURA MÍNIMA
     icon: iconPath, // Define o ícone da janela
     webPreferences: {
       nodeIntegration: true, // Habilita integração com Node.js

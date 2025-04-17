@@ -50,7 +50,7 @@ function setupGenerateButton() {
   const progressBar = document.getElementById("progress-bar");
 
   if (generateImageBtn) {
-    generateImageBtn.addEventListener("click", async () => {
+  generateImageBtn.addEventListener("click", async () => {
       if (isGenerating) return;
       isGenerating = true;
 
@@ -60,14 +60,14 @@ function setupGenerateButton() {
       const prompt = document.getElementById("description-input")?.value.trim();
       const quality = document.getElementById("quality-select")?.value;
 
-      if (!prompt || !quality) {
-        alert("Preencha todos os campos!");
+    if (!prompt || !quality) {
+      alert("Preencha todos os campos!");
         progressWrapper.style.display = "none";
         isGenerating = false;
-        return;
-      }
+      return;
+    }
 
-      try {
+    try {
         const response = await fetch("http://127.0.0.1:5000/start_generation", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -98,20 +98,20 @@ function setupGenerateButton() {
           eventSource.close();
           isGenerating = false;
         });
-      } catch (error) {
+    } catch (error) {
         console.error("Erro:", error);
         alert(`Falha: ${error.message}`);
         isGenerating = false;
-      }
-    });
-  }
+    }
+  });
+}
 }
 
 function loadHistory() {
   fetch('http://127.0.0.1:5000/api/history')
     .then(response => response.json())
     .then(images => {
-      const historyList = document.getElementById('history-list');
+    const historyList = document.getElementById('history-list');
       if (!historyList) return;
       historyList.innerHTML = "";
 
@@ -137,13 +137,13 @@ function loadHistory() {
     })
     .catch(error => {
       console.error("Erro ao carregar histórico:", error);
-    });
+  });
 }
 
 function displayImageFullscreen(imageUrl, prompt) {
   const container = document.createElement('div');
   container.className = 'fullscreen-image';
-
+  
   container.innerHTML = `
     <button class="close-button">×</button>
     <img class="fullscreen-img" src="${imageUrl}" alt="${prompt}">
@@ -151,7 +151,7 @@ function displayImageFullscreen(imageUrl, prompt) {
   `;
 
   document.body.appendChild(container);
-  container.querySelector('.close-button').addEventListener('click', () =>
+  container.querySelector('.close-button').addEventListener('click', () => 
     container.remove()
   );
 }
